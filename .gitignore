@@ -1,0 +1,28 @@
+# Python cache
+__pycache__/
+*.pyc
+.venv/
+
+# Secrets / credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*secret*
+*token*
+*apikey*
+
+# Local runtime private configs (copy from templates)
+OpenClaw/我的持仓与关注点和投资偏好/我的持仓.md
+OpenClaw/我的持仓与关注点和投资偏好/我的投资状态卡.md
+OpenClaw/我的持仓与关注点和投资偏好/我的关联偏好.md
+
+# Generated data outputs
+financial_data.json
+OpenClaw/市场洞察报告/Raw_Data/*
+!OpenClaw/市场洞察报告/Raw_Data/.gitkeep
+OpenClaw/我的持仓与关注点和投资偏好/ai建议/*
+!OpenClaw/我的持仓与关注点和投资偏好/ai建议/.gitkeep
+OpenClaw/市场洞察报告/Internal_Report/[0-9][0-9][0-9][0-9]-[0-9][0-9]/
