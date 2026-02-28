@@ -1,26 +1,23 @@
-# OpenClaw-Market-Radar — Public Safe Edition
+# OpenClaw-Market-Radar
 
-> 这是一个**基于 OpenClaw** 的可公开备份版本，来源于 YMOS 的工作流整理。
-> 项目固定路径：`/home/pi/tools/openclaw/OpenClaw-Market-Radar`
+> 一个面向 OpenClaw Agent 的投研工作流仓库：包含数据抓取脚本、分析规则、技能路由和报告模板。
+> 可部署在任意本地路径，文档中的命令均按相对路径组织。
 
-## 先说清楚：OpenClaw-Market-Radar 和 OpenClaw 的关系
+## 项目定位
 
-- OpenClaw-Market-Radar 不是独立 App，不是 Web 服务。
-- OpenClaw-Market-Radar 是一套给 OpenClaw 使用的「数据脚本 + 工作流规则 + 模板目录」。
-- 正常使用方式有两种：
-  - 在 OpenClaw 对话里用暗号触发流程。
+- 这不是独立 App，也不是 Web 服务。
+- 这是给 OpenClaw 使用的「脚本 + 规则 + 模板」工作流仓库。
+- 使用方式：
+  - 在 OpenClaw 对话中通过触发词执行。
   - 在终端直接运行 `scripts/` 下脚本。
-- `OpenClaw/工作流暗号/` 中的文档就是给 OpenClaw Agent 的执行协议。
-- `RUNBOOK.md` 是唯一执行源（执行顺序/质量门禁/输出标准都以它为准）。
+- `RUNBOOK.md` 是唯一执行规范（顺序、质量门禁、输出标准）。
 
-## 基于 YMOS 的改动（公开版）
+## 项目特性
 
-- 改为单层目录，项目名统一为 `OpenClaw-Market-Radar`。
-- `YM-TIB-SKILL` 改为 `OCMR-TIB-SKILL`。
-- 删除历史运行数据与个人持仓私有内容，改为模板。
-- 增加 `.gitignore`，默认忽略私有配置和运行产物。
-- 移除 `zhangxinmin / 张新民 / Zhang Xinmin` 命名描述，统一为通用财报分析框架。
-- 文档中明确该仓库是 OpenClaw 工作流项目。
+- 可公开备份：私有配置使用模板文件生成。
+- 可复现执行：核心流程沉淀在 `RUNBOOK.md` + `OpenClaw/工作流暗号/`。
+- 可扩展技能：策略与提示词集中在 `OCMR-TIB-SKILL/`。
+- 安全默认：`.gitignore` 默认忽略敏感配置与运行产物。
 
 ## 目录结构
 
@@ -56,7 +53,8 @@ OpenClaw-Market-Radar/
 1. 安装依赖
 
 ```bash
-cd /home/pi/tools/openclaw/OpenClaw-Market-Radar
+# 先进入你的项目目录（下面是示例）
+cd /path/to/OpenClaw-Market-Radar
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -124,7 +122,7 @@ python3 scripts/fetch_fastnews_portfolio.py \
 3. 输出层：生成市场洞察、快讯雷达、财报报告等
 4. 归档层：结果写入 `OpenClaw/市场洞察报告/` 与 `ai建议/`
 
-## 如何保证提交到 Git 后仍可正常使用
+## 开源仓库维护建议
 
 - 文档入口统一：`README.md` + `RUNBOOK.md`。
 - `RUNBOOK.md 是唯一执行源`，其他文档不重复维护执行细节。
