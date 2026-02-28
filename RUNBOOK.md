@@ -1,7 +1,7 @@
-# MOS RUNBOOK
+# OpenClaw-Market-Radar（MOS）RUNBOOK
 
 ## OpenClaw Runtime Context
-- MOS is an OpenClaw workflow project (not a standalone service).
+- OpenClaw-Market-Radar (codename: MOS) is an OpenClaw workflow project (not a standalone service).
 - Project root must be used as current directory: `/home/pi/tools/openclaw/MOS`.
 - Trigger phrases are defined in `OpenClaw/工作流暗号/*.md`; execution quality gates are defined in this RUNBOOK.
 - This document is the single source of truth for execution order, output format, and quality gates.
@@ -15,7 +15,7 @@
 - Do not commit personal holdings, generated radar outputs, or secret keys.
 
 ## Goal
-Turn MOS into a repeatable pipeline: input -> analysis -> action.
+Turn OpenClaw-Market-Radar (MOS) into a repeatable pipeline: input -> analysis -> action.
 
 ## User Delivery Rule (mandatory)
 - Always return the report body directly in chat.

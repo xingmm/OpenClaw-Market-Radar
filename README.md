@@ -1,12 +1,13 @@
-# MOS — OpenClaw 投研工作流项目（Public Safe Edition）
+# OpenClaw-Market-Radar（MOS）— Public Safe Edition
 
 > 这是一个**基于 OpenClaw** 的可公开备份版本，来源于 YMOS 的工作流整理。
 > 项目固定路径：`/home/pi/tools/openclaw/MOS`
+> 对外项目名：`OpenClaw-Market-Radar`；内部代号：`MOS`
 
-## 先说清楚：MOS 和 OpenClaw 的关系
+## 先说清楚：OpenClaw-Market-Radar（MOS）和 OpenClaw 的关系
 
-- MOS 不是独立 App，不是 Web 服务。
-- MOS 是一套给 OpenClaw 使用的「数据脚本 + 工作流规则 + 模板目录」。
+- OpenClaw-Market-Radar（MOS）不是独立 App，不是 Web 服务。
+- OpenClaw-Market-Radar（MOS）是一套给 OpenClaw 使用的「数据脚本 + 工作流规则 + 模板目录」。
 - 正常使用方式有两种：
   - 在 OpenClaw 对话里用暗号触发流程。
   - 在终端直接运行 `scripts/` 下脚本。
@@ -15,7 +16,7 @@
 
 ## 基于 YMOS 的改动（公开版）
 
-- 改为单层目录，项目名统一为 `MOS`。
+- 改为单层目录，对外项目名为 `OpenClaw-Market-Radar`，内部代号统一为 `MOS`。
 - `YM-TIB-SKILL` 改为 `MOS-TIB-SKILL`。
 - 删除历史运行数据与个人持仓私有内容，改为模板。
 - 增加 `.gitignore`，默认忽略私有配置和运行产物。
