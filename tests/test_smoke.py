@@ -12,7 +12,7 @@ class TestProjectSmoke(unittest.TestCase):
             ROOT / "RUNBOOK.md",
             ROOT / "requirements.txt",
             ROOT / ".env.example",
-            ROOT / "MOS-TIB-SKILL" / "references" / "INDEX.md",
+            ROOT / "OCMR-TIB-SKILL" / "references" / "INDEX.md",
             ROOT / "scripts" / "fetch_rss.py",
             ROOT / "scripts" / "fetch_data_api.py",
             ROOT / "scripts" / "fetch_macro_liquidity.py",
@@ -31,10 +31,10 @@ class TestProjectSmoke(unittest.TestCase):
 
     def test_split_skills_have_valid_frontmatter(self):
         skill_paths = [
-            ROOT / "MOS-TIB-SKILL" / "references" / "skills" / "个股研究" / "SKILL.md",
-            ROOT / "MOS-TIB-SKILL" / "references" / "skills" / "宏观洞察" / "SKILL.md",
-            ROOT / "MOS-TIB-SKILL" / "references" / "skills" / "快讯雷达" / "SKILL.md",
-            ROOT / "MOS-TIB-SKILL" / "references" / "skills" / "市场洞察编排" / "SKILL.md",
+            ROOT / "OCMR-TIB-SKILL" / "references" / "skills" / "个股研究" / "SKILL.md",
+            ROOT / "OCMR-TIB-SKILL" / "references" / "skills" / "宏观洞察" / "SKILL.md",
+            ROOT / "OCMR-TIB-SKILL" / "references" / "skills" / "快讯雷达" / "SKILL.md",
+            ROOT / "OCMR-TIB-SKILL" / "references" / "skills" / "市场洞察编排" / "SKILL.md",
         ]
         for path in skill_paths:
             text = path.read_text(encoding="utf-8")

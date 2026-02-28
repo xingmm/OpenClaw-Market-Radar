@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MOS RSS 数据获取工具（投资场景示例）
+OpenClaw-Market-Radar RSS 数据获取工具（投资场景示例）
 
 【本脚本是投资研究场景的实现示例】
 - 数据源：Yongmai 投资洞察博客 RSS + 其他财经 RSS
@@ -36,7 +36,7 @@ from datetime import datetime, timedelta, timezone
 # 【投资场景】默认使用 Yongmai 市场洞察 RSS
 # 【其他场景】修改为你的主要数据源 URL
 DEFAULT_RSS_URL = os.getenv(
-    "MOS_RSS_DEFAULT_URL",
+    "OCMR_RSS_DEFAULT_URL",
     "https://yongmai.xyz/category/daily-research/feed/",
 )
 
@@ -187,7 +187,7 @@ def fetch_all_sources(days=1):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="MOS RSS 数据获取工具 - 从 RSS 源获取市场信息"
+        description="OpenClaw-Market-Radar RSS 数据获取工具 - 从 RSS 源获取市场信息"
     )
     parser.add_argument(
         "days",
@@ -210,7 +210,7 @@ def main():
     args = parser.parse_args()
 
     print("=" * 50)
-    print("MOS RSS 数据获取工具")
+    print("OpenClaw-Market-Radar RSS 数据获取工具")
     print("=" * 50)
 
     if args.url:

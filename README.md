@@ -1,13 +1,12 @@
-# OpenClaw-Market-Radar（MOS）— Public Safe Edition
+# OpenClaw-Market-Radar — Public Safe Edition
 
 > 这是一个**基于 OpenClaw** 的可公开备份版本，来源于 YMOS 的工作流整理。
-> 项目固定路径：`/home/pi/tools/openclaw/MOS`
-> 对外项目名：`OpenClaw-Market-Radar`；内部代号：`MOS`
+> 项目固定路径：`/home/pi/tools/openclaw/OpenClaw-Market-Radar`
 
-## 先说清楚：OpenClaw-Market-Radar（MOS）和 OpenClaw 的关系
+## 先说清楚：OpenClaw-Market-Radar 和 OpenClaw 的关系
 
-- OpenClaw-Market-Radar（MOS）不是独立 App，不是 Web 服务。
-- OpenClaw-Market-Radar（MOS）是一套给 OpenClaw 使用的「数据脚本 + 工作流规则 + 模板目录」。
+- OpenClaw-Market-Radar 不是独立 App，不是 Web 服务。
+- OpenClaw-Market-Radar 是一套给 OpenClaw 使用的「数据脚本 + 工作流规则 + 模板目录」。
 - 正常使用方式有两种：
   - 在 OpenClaw 对话里用暗号触发流程。
   - 在终端直接运行 `scripts/` 下脚本。
@@ -16,8 +15,8 @@
 
 ## 基于 YMOS 的改动（公开版）
 
-- 改为单层目录，对外项目名为 `OpenClaw-Market-Radar`，内部代号统一为 `MOS`。
-- `YM-TIB-SKILL` 改为 `MOS-TIB-SKILL`。
+- 改为单层目录，项目名统一为 `OpenClaw-Market-Radar`。
+- `YM-TIB-SKILL` 改为 `OCMR-TIB-SKILL`。
 - 删除历史运行数据与个人持仓私有内容，改为模板。
 - 增加 `.gitignore`，默认忽略私有配置和运行产物。
 - 移除 `zhangxinmin / 张新民 / Zhang Xinmin` 命名描述，统一为通用财报分析框架。
@@ -26,7 +25,7 @@
 ## 目录结构
 
 ```text
-MOS/
+OpenClaw-Market-Radar/
 ├── README.md
 ├── RUNBOOK.md
 ├── .gitignore
@@ -40,7 +39,7 @@ MOS/
 │   ├── fetch_macro_liquidity.py
 │   ├── fetch_fastnews_portfolio.py
 │   └── financial_report.py
-├── MOS-TIB-SKILL/
+├── OCMR-TIB-SKILL/
 │   ├── SKILL.md
 │   └── references/
 │       ├── p*.md
@@ -57,7 +56,7 @@ MOS/
 1. 安装依赖
 
 ```bash
-cd /home/pi/tools/openclaw/MOS
+cd /home/pi/tools/openclaw/OpenClaw-Market-Radar
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -110,13 +109,13 @@ python3 scripts/fetch_fastnews_portfolio.py \
 - `RUNBOOK.md`
 - `OpenClaw/工作流暗号/投研中台暗号.md`
 - `OpenClaw/工作流暗号/投资雷达与策略简报暗号.md`
-- `MOS-TIB-SKILL/references/INDEX.md`（skill 与提示词总索引）
+- `OCMR-TIB-SKILL/references/INDEX.md`（skill 与提示词总索引）
 
 默认 Skill 路由：
-- `跑一下宏观洞察` -> `MOS-TIB-SKILL/references/skills/宏观洞察/SKILL.md`
-- `跑一下快讯雷达` -> `MOS-TIB-SKILL/references/skills/快讯雷达/SKILL.md`
-- `跑一下市场洞察` -> `MOS-TIB-SKILL/references/skills/市场洞察编排/SKILL.md`（编排 P19 + P20）
-- `调研一下 [股票]` / `分析财报 [公司]` -> `MOS-TIB-SKILL/references/skills/个股研究/SKILL.md`
+- `跑一下宏观洞察` -> `OCMR-TIB-SKILL/references/skills/宏观洞察/SKILL.md`
+- `跑一下快讯雷达` -> `OCMR-TIB-SKILL/references/skills/快讯雷达/SKILL.md`
+- `跑一下市场洞察` -> `OCMR-TIB-SKILL/references/skills/市场洞察编排/SKILL.md`（编排 P19 + P20）
+- `调研一下 [股票]` / `分析财报 [公司]` -> `OCMR-TIB-SKILL/references/skills/个股研究/SKILL.md`
 
 ## 运行逻辑（简版）
 

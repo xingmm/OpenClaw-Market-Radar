@@ -1,9 +1,9 @@
 ---
-name: mos-skill-index
-description: MOS 技能索引与导航。用于在个股研究、宏观洞察、快讯雷达、市场洞察编排之间选择正确技能入口。
+name: ocmr-skill-index
+description: OpenClaw-Market-Radar 技能索引与导航。用于在个股研究、宏观洞察、快讯雷达、市场洞察编排之间选择正确技能入口。
 ---
 
-# MOS 技能索引
+# OpenClaw-Market-Radar 技能索引
 
 ## 技能地图
 

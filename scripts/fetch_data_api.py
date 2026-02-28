@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-MOS API 数据获取工具（投资场景示例）
+OpenClaw-Market-Radar API 数据获取工具（投资场景示例）
 
 【本脚本是投资研究场景的实现示例】
 - 数据源：Yongmai 投资情报 API
@@ -30,16 +30,19 @@ import os
 
 # ============================================================
 # 优先从环境变量读取配置
-# - MOS_API_KEY: API Key
-# - MOS_API_URL: API endpoint (optional)
+# - OCMR_API_KEY: API Key
+# - OCMR_API_URL: API endpoint (optional)
 # ============================================================
-API_KEY = os.getenv("MOS_API_KEY", "").strip()
+API_KEY = os.getenv("OCMR_API_KEY", "").strip()
 
 # ============================================================
 # 【投资场景】API 配置
 # 【其他场景】修改为你的 API endpoint 和参数
 # ============================================================
-API_URL = os.getenv("MOS_API_URL", "https://yongmai.xyz/wp-json/tib/v1/reports").strip()
+API_URL = os.getenv(
+    "OCMR_API_URL",
+    "https://yongmai.xyz/wp-json/tib/v1/reports",
+).strip()
 
 # 【投资场景】默认分类
 # 【其他场景】修改为你的数据分类（论文类型、产品类别等）
@@ -70,7 +73,7 @@ def check_api_key():
         print("   python3 scripts/fetch_rss.py 1 --output output.json")
         print()
         print("配置方法：")
-        print("   export MOS_API_KEY='你的Key'")
+        print("   export OCMR_API_KEY='你的Key'")
         print("   或在项目根目录创建 .env 后手动 source")
         print("   source .env")
         print()
@@ -94,7 +97,7 @@ def fetch_reports(time_value):
     # Bearer Token 认证
     headers = {
         "Authorization": f"Bearer {API_KEY}",
-        "User-Agent": "MOS/1.0",
+        "User-Agent": "OpenClaw-Market-Radar/1.0",
         "Accept": "application/json"
     }
 
@@ -147,7 +150,7 @@ def fetch_reports(time_value):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="MOS API 数据获取工具 - 需要 API Key"
+        description="OpenClaw-Market-Radar API 数据获取工具 - 需要 API Key"
     )
     parser.add_argument(
         "time_value",
@@ -165,7 +168,7 @@ def main():
     args = parser.parse_args()
 
     print("=" * 50)
-    print("MOS API 数据获取工具")
+    print("OpenClaw-Market-Radar API 数据获取工具")
     print("=" * 50)
 
     # 检查 API Key

@@ -1,8 +1,8 @@
-# OpenClaw-Market-Radar（MOS）RUNBOOK
+# OpenClaw-Market-Radar RUNBOOK
 
 ## OpenClaw Runtime Context
-- OpenClaw-Market-Radar (codename: MOS) is an OpenClaw workflow project (not a standalone service).
-- Project root must be used as current directory: `/home/pi/tools/openclaw/MOS`.
+- OpenClaw-Market-Radar is an OpenClaw workflow project (not a standalone service).
+- Project root must be used as current directory: `/home/pi/tools/openclaw/OpenClaw-Market-Radar`.
 - Trigger phrases are defined in `OpenClaw/工作流暗号/*.md`; execution quality gates are defined in this RUNBOOK.
 - This document is the single source of truth for execution order, output format, and quality gates.
 
@@ -15,7 +15,7 @@
 - Do not commit personal holdings, generated radar outputs, or secret keys.
 
 ## Goal
-Turn OpenClaw-Market-Radar (MOS) into a repeatable pipeline: input -> analysis -> action.
+Turn OpenClaw-Market-Radar into a repeatable pipeline: input -> analysis -> action.
 
 ## User Delivery Rule (mandatory)
 - Always return the report body directly in chat.
@@ -36,10 +36,10 @@ Turn OpenClaw-Market-Radar (MOS) into a repeatable pipeline: input -> analysis -
 - 盘面解读（pending user spec）
 
 ## Skill Routing (mandatory)
-- `跑一下宏观洞察` -> `MOS-TIB-SKILL/references/skills/宏观洞察/SKILL.md`
-- `跑一下快讯雷达` -> `MOS-TIB-SKILL/references/skills/快讯雷达/SKILL.md`
-- `跑一下市场洞察` -> `MOS-TIB-SKILL/references/skills/市场洞察编排/SKILL.md`（内部组合 P19 + P20）
-- `MOS-TIB-SKILL/references/p13-market-scanner.md` 作为底层扫描能力保留，不作为默认合并输出路由
+- `跑一下宏观洞察` -> `OCMR-TIB-SKILL/references/skills/宏观洞察/SKILL.md`
+- `跑一下快讯雷达` -> `OCMR-TIB-SKILL/references/skills/快讯雷达/SKILL.md`
+- `跑一下市场洞察` -> `OCMR-TIB-SKILL/references/skills/市场洞察编排/SKILL.md`（内部组合 P19 + P20）
+- `OCMR-TIB-SKILL/references/p13-market-scanner.md` 作为底层扫描能力保留，不作为默认合并输出路由
 
 ## Daily Pipeline (fixed order)
 1. Market scan

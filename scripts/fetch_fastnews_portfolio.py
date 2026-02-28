@@ -16,7 +16,7 @@ from typing import List
 import requests
 
 API_URL = os.getenv(
-    "MOS_FASTNEWS_API_URL",
+    "OCMR_FASTNEWS_API_URL",
     "https://np-weblist.eastmoney.com/comm/web/getFastNewsList",
 )
 DEFAULT_COLUMNS = "102,103,104,105"

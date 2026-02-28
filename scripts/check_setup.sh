@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
-echo "[MOS] setup check started"
+echo "[OpenClaw-Market-Radar] setup check started"
 
 err=0
 warn=0
@@ -48,9 +48,9 @@ if [[ -x ".venv/bin/python" ]]; then
 fi
 
 check_dir "scripts"
-check_dir "MOS-TIB-SKILL"
-check_dir "MOS-TIB-SKILL/references"
-check_dir "MOS-TIB-SKILL/references/skills"
+check_dir "OCMR-TIB-SKILL"
+check_dir "OCMR-TIB-SKILL/references"
+check_dir "OCMR-TIB-SKILL/references/skills"
 check_dir "OpenClaw/工作流暗号"
 check_dir "OpenClaw/市场洞察报告/Raw_Data"
 check_dir "OpenClaw/我的持仓与关注点和投资偏好/ai建议"
@@ -64,10 +64,10 @@ check_file "OpenClaw/工作流暗号/投资雷达与策略简报暗号.md"
 check_file "OpenClaw/我的持仓与关注点和投资偏好/我的持仓.template.md"
 check_file "OpenClaw/我的持仓与关注点和投资偏好/我的投资状态卡.template.md"
 check_file "OpenClaw/我的持仓与关注点和投资偏好/我的关联偏好.template.md"
-check_file "MOS-TIB-SKILL/references/skills/个股研究/SKILL.md"
-check_file "MOS-TIB-SKILL/references/skills/宏观洞察/SKILL.md"
-check_file "MOS-TIB-SKILL/references/skills/快讯雷达/SKILL.md"
-check_file "MOS-TIB-SKILL/references/skills/市场洞察编排/SKILL.md"
+check_file "OCMR-TIB-SKILL/references/skills/个股研究/SKILL.md"
+check_file "OCMR-TIB-SKILL/references/skills/宏观洞察/SKILL.md"
+check_file "OCMR-TIB-SKILL/references/skills/快讯雷达/SKILL.md"
+check_file "OCMR-TIB-SKILL/references/skills/市场洞察编排/SKILL.md"
 
 # Python deps check
 if "$PY_CMD" - << 'PY' >/dev/null 2>&1

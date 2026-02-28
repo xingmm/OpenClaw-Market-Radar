@@ -1,6 +1,6 @@
-# MOS-TIB-SKILL References Index
+# OCMR-TIB-SKILL References Index
 
-本文件是 `MOS-TIB-SKILL/references/` 的统一索引，用于区分：
+本文件是 `OCMR-TIB-SKILL/references/` 的统一索引，用于区分：
 
 1. `references/skills/`：技能入口层（触发词、编排、质量门禁）
 2. `references/p*.md`：提示词方法层（分析框架、模板细节）
