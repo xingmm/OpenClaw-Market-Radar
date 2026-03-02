@@ -2,7 +2,7 @@
 
 ## OpenClaw Runtime Context
 - OpenClaw-Market-Radar is an OpenClaw workflow project (not a standalone service).
-- Project root must be used as current directory: `/home/pi/tools/openclaw/OpenClaw-Market-Radar`.
+- Project root must be used as current directory: repository root (e.g. `./OpenClaw-Market-Radar`).
 - Trigger phrases are defined in `OpenClaw/工作流暗号/*.md`; execution quality gates are defined in this RUNBOOK.
 - This document is the single source of truth for execution order, output format, and quality gates.
 

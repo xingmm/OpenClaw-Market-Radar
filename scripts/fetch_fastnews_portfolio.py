@@ -117,6 +117,8 @@ class NewsItem:
     title: str
     summary: str
     score: int
+    priority: str
+    freshness_score: int
     tags: List[str]
 
 
@@ -171,7 +173,48 @@ def fetch_fastnews(page_size: int) -> list[dict]:
     return data.get("data", {}).get("fastNewsList", [])
 
 
-def score_item(item: dict, holdings: List[str]) -> NewsItem:
+def parse_show_time(show_time: str) -> datetime | None:
+    if not show_time:
+        return None
+    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
+        try:
+            return datetime.strptime(show_time, fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def freshness_and_priority(show_time: str, now: datetime) -> tuple[int, str]:
+    ts = parse_show_time(show_time)
+    if ts is None:
+        return 0, "P3"
+    age_hours = max(0.0, (now - ts).total_seconds() / 3600.0)
+    if age_hours <= 3:
+        return 3, "P1"
+    if age_hours <= 12:
+        return 2, "P2"
+    if age_hours <= 24:
+        return 1, "P2"
+    return 0, "P3"
+
+
+def normalize_title(title: str) -> str:
+    return re.sub(r"\s+", "", title).strip().lower()
+
+
+def deduplicate_by_title(items: List[NewsItem]) -> List[NewsItem]:
+    seen = set()
+    deduped: List[NewsItem] = []
+    for item in items:
+        key = normalize_title(item.title)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        deduped.append(item)
+    return deduped
+
+
+def score_item(item: dict, holdings: List[str], now: datetime) -> NewsItem:
     title = item.get("title", "")
     summary = item.get("summary", "")
     text = f"{title} {summary}"
@@ -208,11 +251,17 @@ def score_item(item: dict, holdings: List[str]) -> NewsItem:
     if "以色列" in text and not related_holdings and not macro_hits and not ai_hits and not sector_hits:
         score -= 1
 
+    freshness_score, priority = freshness_and_priority(item.get("showTime", ""), now)
+    score += freshness_score
+    tags.append(f"优先级:{priority}")
+
     return NewsItem(
         show_time=item.get("showTime", ""),
         title=title,
         summary=summary,
         score=score,
+        priority=priority,
+        freshness_score=freshness_score,
         tags=tags,
     )
 
@@ -234,6 +283,7 @@ def build_markdown(items: List[NewsItem], holdings: List[str]) -> str:
     for i, it in enumerate(items, 1):
         lines.append(f"### {i}. [{it.show_time}] {it.title}")
         lines.append(f"- 相关性评分：{it.score}")
+        lines.append(f"- 优先级：{it.priority}（时效分 {it.freshness_score}）")
         if it.tags:
             lines.append(f"- 标签：{' | '.join(it.tags)}")
         lines.append(f"- 摘要：{it.summary}")
@@ -259,10 +309,14 @@ def main() -> None:
     holding_path = Path(args.holding_md)
     holdings = load_holdings(holding_path)
     raw_items = fetch_fastnews(args.page_size)
-    scored = [score_item(it, holdings) for it in raw_items]
+    now = datetime.now()
+    scored = [score_item(it, holdings, now) for it in raw_items]
     scored = [it for it in scored if it.score >= 2]
-    scored.sort(key=lambda x: (x.score, x.show_time), reverse=True)
-    top_items = scored[: args.top_k]
+    scored.sort(
+        key=lambda x: (x.score, parse_show_time(x.show_time) or datetime.min),
+        reverse=True,
+    )
+    top_items = deduplicate_by_title(scored)[: args.top_k]
 
     out_json = Path(args.out_json)
     out_json.parent.mkdir(parents=True, exist_ok=True)
@@ -274,6 +328,8 @@ def main() -> None:
                     "title": it.title,
                     "summary": it.summary,
                     "score": it.score,
+                    "priority": it.priority,
+                    "freshness_score": it.freshness_score,
                     "tags": it.tags,
                 }
                 for it in top_items

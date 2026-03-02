@@ -40,9 +40,27 @@ def to_map(rows: List[dict]) -> Dict[str, dict]:
 
 def v(row: dict, key: str) -> float:
     val = row.get(key)
-    if val is None:
+    if val in (None, ""):
         return 0.0
-    return float(val)
+    try:
+        return float(val)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def has_numeric_value(row: dict, key: str) -> bool:
+    val = row.get(key)
+    if val in (None, ""):
+        return False
+    try:
+        float(val)
+    except (TypeError, ValueError):
+        return False
+    return True
+
+
+def missing_fields(row: dict, fields: List[str]) -> List[str]:
+    return [k for k in fields if not has_numeric_value(row, k)]
 
 
 def pct(x: float) -> str:
@@ -197,6 +215,25 @@ def main() -> None:
     cur_c, pre_c = cf[args.period], cf[args.prev_period]
     cur_b, pre_b = bs[args.period], bs[args.bs_prev]
 
+    required_income_fields = [
+        "TOTAL_OPERATE_INCOME",
+        "OPERATE_COST",
+        "OPERATE_TAX_ADD",
+        "SALE_EXPENSE",
+        "MANAGE_EXPENSE",
+        "RESEARCH_EXPENSE",
+        "FINANCE_EXPENSE",
+        "OPERATE_PROFIT",
+    ]
+    missing_cur_i = missing_fields(cur_i, required_income_fields)
+    missing_pre_i = missing_fields(pre_i, required_income_fields)
+    if missing_cur_i or missing_pre_i:
+        raise RuntimeError(
+            "缺少关键利润表字段，停止生成报告以避免错误结论。"
+            f" current({args.period}): {missing_cur_i or 'none'};"
+            f" previous({args.prev_period}): {missing_pre_i or 'none'}"
+        )
+
     rev = v(cur_i, "TOTAL_OPERATE_INCOME")
     rev_pre = v(pre_i, "TOTAL_OPERATE_INCOME")
     cost = v(cur_i, "OPERATE_COST")
@@ -256,8 +293,12 @@ def main() -> None:
             if ((accept_invest_cash is not None and accept_invest_cash > 0) or (args.accept_invest_cash_override is not None))
             else "数据源未返回有效吸收投资字段，已标记为无法计算，需用财报原文覆盖。"
         ),
-        "required_ok": all(k in cur_i for k in ["TOTAL_OPERATE_INCOME", "OPERATE_COST", "OPERATE_TAX_ADD", "SALE_EXPENSE", "MANAGE_EXPENSE", "RESEARCH_EXPENSE", "FINANCE_EXPENSE"]),
-        "required_msg": "核心利润所需字段齐全。",
+        "required_ok": not missing_cur_i and not missing_pre_i,
+        "required_msg": (
+            "核心利润所需字段齐全。"
+            if (not missing_cur_i and not missing_pre_i)
+            else f"字段缺失 current={missing_cur_i or 'none'} previous={missing_pre_i or 'none'}"
+        ),
     }
 
     review_list = build_review_list(cur_i, cur_c, cur_b, checks)
