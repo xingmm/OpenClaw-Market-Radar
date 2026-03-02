@@ -110,6 +110,7 @@ Required sections in final market insight:
 Quality gates:
 - Must include both `持仓相关` and `宏观/市场` buckets when available
 - Must include `AI/科技` bucket check (大模型/机器人/GPU/算力/半导体) when related headlines exist
+- Must include `产业赛道` bucket check (新能源/光伏/储能/汽车) when related headlines exist
 - Must include an `重要信息清单` section (time + event + one-line impact), not summary-only
 - No duplicate headlines in top-k
 - Every core conclusion includes: evidence data -> reasoning chain -> final conclusion

@@ -92,6 +92,24 @@ AI_KEYWORDS = [
     "数据中心",
 ]
 
+SECTOR_KEYWORDS = [
+    "新能源",
+    "光伏",
+    "储能",
+    "锂电",
+    "锂电池",
+    "电池",
+    "汽车",
+    "智能汽车",
+    "新能源车",
+    "比亚迪",
+    "宁德时代",
+    "隆基",
+    "通威",
+    "逆变器",
+    "充电桩",
+]
+
 
 @dataclass
 class NewsItem:
@@ -181,8 +199,13 @@ def score_item(item: dict, holdings: List[str]) -> NewsItem:
         tags.append("AI/科技:" + "、".join(ai_hits[:4]))
         score += 2
 
-    # Penalize irrelevant geopolitical headline if no macro/holding/AI relation.
-    if "以色列" in text and not related_holdings and not macro_hits and not ai_hits:
+    sector_hits = [k for k in SECTOR_KEYWORDS if k in text]
+    if sector_hits:
+        tags.append("产业赛道:" + "、".join(sector_hits[:4]))
+        score += 2
+
+    # Penalize irrelevant geopolitical headline if no macro/holding/AI/sector relation.
+    if "以色列" in text and not related_holdings and not macro_hits and not ai_hits and not sector_hits:
         score -= 1
 
     return NewsItem(
@@ -217,7 +240,7 @@ def build_markdown(items: List[NewsItem], holdings: List[str]) -> str:
         lines.append("")
 
     lines.append("## 使用建议")
-    lines.append("- 先看`持仓相关`标签，再看`宏观/市场`与`AI/科技`标签。")
+    lines.append("- 先看`持仓相关`标签，再看`宏观/市场`、`AI/科技`与`产业赛道`标签。")
     lines.append("- 若连续两期都出现同一主题，提升其观察优先级。")
     lines.append("- 对高波动主题（AI、券商、汽车链）优先执行风控纪律。")
 
