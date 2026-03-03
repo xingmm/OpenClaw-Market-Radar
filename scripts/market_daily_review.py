@@ -162,6 +162,21 @@ def pct_change(rows: List[dict]) -> float:
     return 0.0 if prev == 0 else (cur - prev) / prev * 100
 
 
+def index_detail_line(name: str, rows_daily: List[dict]) -> str:
+    ind = add_indicators(rows_daily)
+    last = ind[-1]
+    chg = pct_change(rows_daily)
+    trend = []
+    trend.append("上EMA30" if last["close"] >= last["ema30"] else "下EMA30")
+    trend.append("上EMA144" if last["close"] >= last["ema144"] else "下EMA144")
+    gap = abs(last["ema30"] - last["ema144"]) / last["ema144"] * 100
+    return (
+        f"- {name}: 收盘{last['close']:.2f} 日涨跌{chg:.2f}% | "
+        f"EMA30={last['ema30']:.2f} EMA144={last['ema144']:.2f} "
+        f"({','.join(trend)}; 短长距{gap:.2f}%)"
+    )
+
+
 def trend_action(last: dict, has_risk_structure: bool) -> Tuple[int, List[str]]:
     close = last["close"]
     ema30 = last["ema30"]
@@ -243,8 +258,8 @@ def build_report(out_json: Path, out_md: Path) -> None:
 
     sync_lines = []
     for name in ["深证成指", "创业板指", "上证50", "沪深300", "中证500"]:
-        rows = fetch_kline(SYMBOLS[name], 240, 3)
-        sync_lines.append(f"- {name}: 日涨跌 {pct_change(rows):.2f}%")
+        rows = fetch_kline(SYMBOLS[name], 240, 260)
+        sync_lines.append(index_detail_line(name, rows))
 
     trend_gap = abs(last["ema30"] - last["ema144"]) / last["ema144"] * 100
     lines = [
