@@ -246,18 +246,27 @@ def trendline_state_text(prev_close: float, prev_trend: float, cur_close: float,
     return "在趋势线之上" if cur_close >= cur_trend else "在趋势线之下"
 
 
-def index_detail_line(name: str, rows_daily: List[dict]) -> str:
-    ind = add_indicators(rows_daily)
-    last = ind[-1]
-    prev = ind[-2] if len(ind) >= 2 else ind[-1]
+def index_detail_line(name: str, rows_daily: List[dict], rows_120m: List[dict]) -> str:
+    ind_d = add_indicators(rows_daily)
+    last = ind_d[-1]
+    prev = ind_d[-2] if len(ind_d) >= 2 else ind_d[-1]
     chg = pct_change(rows_daily)
     trend_state = trendline_state_text(prev["close"], prev["ema30"], last["close"], last["ema30"])
     life_state = "在生死线之上" if last["close"] >= last["ema144"] else "在生死线之下"
     gap = abs(last["ema30"] - last["ema144"]) / last["ema144"] * 100
+
+    ind_120 = add_indicators(rows_120m)
+    st_120 = calc_structure(ind_120)
+    macd_note = "120m顶结构" if st_120.bear_div else ("120m底结构" if st_120.bull_div else "120m无结构")
+
+    td_d = calc_td9(rows_daily)
+    td_120 = calc_td9(rows_120m)
+    td_note = f"TD9(日/120)={td_d['up']}/{td_d['down']} | {td_120['up']}/{td_120['down']}"
+
     return (
         f"- {name}: 收盘{last['close']:.2f} 日涨跌{chg:.2f}% | "
         f"趋势线={last['ema30']:.2f} 生死线={last['ema144']:.2f} "
-        f"({trend_state},{life_state}; 短长距{gap:.2f}%)"
+        f"({trend_state},{life_state}; 短长距{gap:.2f}%) | {macd_note} | {td_note}"
     )
 
 
@@ -350,24 +359,25 @@ def build_report(out_json: Path, out_md: Path) -> None:
 
     td_map = {"月线": 240, "周线": 240, "日线": 240, "120m": 120, "90m": 90, "60m": 60}
     td_lines: List[str] = []
-    td_up9 = 0
-    td_down9 = 0
+    td_up7 = 0
+    td_down7 = 0
     for name, scale in td_map.items():
         td = calc_td9(fetch_kline(SYMBOLS["上证指数"], scale, 80))
         txt = f"{name} TD上计数={td['up']} TD下计数={td['down']}"
-        if td["up"] >= 9:
-            td_up9 += 1
-            txt += "（高位不追高提示）"
-        if td["down"] >= 9:
-            td_down9 += 1
+        if td["up"] >= 7:
+            td_up7 += 1
+            txt += "（高位7+不追高提示）"
+        if td["down"] >= 7:
+            td_down7 += 1
             if not risk_tfs:
-                txt += "（低9可作观察参考）"
+                txt += "（低位7+可作观察参考）"
         td_lines.append(f"- {txt}")
 
     sync_lines = []
     for name in ["深证成指", "创业板指", "上证50", "沪深300", "中证500"]:
-        rows = fetch_kline(SYMBOLS[name], 240, 260)
-        sync_lines.append(index_detail_line(name, rows))
+        rows_d = fetch_kline(SYMBOLS[name], 240, 260)
+        rows_120 = fetch_kline(SYMBOLS[name], 120, 260)
+        sync_lines.append(index_detail_line(name, rows_d, rows_120))
 
     trend_gap = abs(last["ema30"] - last["ema144"]) / last["ema144"] * 100
     trend_state = trendline_state_text(prev_daily["close"], prev_daily["ema30"], last["close"], last["ema30"])
@@ -394,7 +404,7 @@ def build_report(out_json: Path, out_md: Path) -> None:
         f"- 触发依据: {'；'.join(reasons) if reasons else '未触发破趋势与高威胁结构条件'}",
         "",
         "## 4) TD9提示（月/周/日/120/90/60）",
-        f"- TD9总述: 高位9出现{td_up9}个周期，低位9出现{td_down9}个周期。",
+        f"- TD9总述: 高位7+出现{td_up7}个周期，低位7+出现{td_down7}个周期。",
         *td_lines,
         "- 说明: TD9仅作提示，不作为直接加减仓信号。",
         "",
