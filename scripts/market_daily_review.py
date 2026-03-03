@@ -167,49 +167,152 @@ def _latest_passivation(rows: List[dict], bullish: bool, lookback: int = 8) -> T
     return True, ("邻钝" if gap <= 1 else "隔钝")
 
 
-def _remain_bars_from(start_idx: int | None, total_len: int) -> int:
-    if start_idx is None:
-        return 0
-    elapsed = max(0, total_len - 1 - start_idx)
-    return max(0, STRUCTURE_IMPACT_BARS - elapsed)
+def _cross_series(rows: List[dict]) -> Tuple[List[bool], List[bool]]:
+    jc0 = [False] * len(rows)
+    sc0 = [False] * len(rows)
+    jc = [False] * len(rows)
+    sc = [False] * len(rows)
+    for i in range(1, len(rows)):
+        p_dif, p_dea = rows[i - 1]["dif"], rows[i - 1]["dea"]
+        c_dif, c_dea = rows[i]["dif"], rows[i]["dea"]
+        jc0[i] = p_dif <= p_dea and c_dif > c_dea
+        sc0[i] = p_dif >= p_dea and c_dif < c_dea
+        mc_pos2 = rows[i]["macd"] > 0 and rows[i - 1]["macd"] > 0
+        mc_neg2 = rows[i]["macd"] < 0 and rows[i - 1]["macd"] < 0
+        jc[i] = (jc0[i] and mc_pos2) or (i >= 1 and jc0[i - 1] and mc_pos2)
+        sc[i] = (sc0[i] and mc_neg2) or (i >= 1 and sc0[i - 1] and mc_neg2)
+    return jc, sc
+
+
+def _last_three_true(flags: List[bool]) -> List[int]:
+    idx = [i for i, v in enumerate(flags) if v]
+    return idx[-3:]
+
+
+def _seg_ext(rows: List[dict], start: int, end: int, key: str, use_max: bool) -> float:
+    vals = [rows[i][key] for i in range(start, end + 1)]
+    return max(vals) if use_max else min(vals)
+
+
+def _tdx_state(rows: List[dict]) -> Dict[str, object]:
+    n = len(rows)
+    if n < 20:
+        return {
+            "bull_pass": False,
+            "bear_pass": False,
+            "bull_div": False,
+            "bear_div": False,
+            "bull_pass_kind": "",
+            "bear_pass_kind": "",
+        }
+
+    t = n - 1
+    jc, sc = _cross_series(rows)
+    j = _last_three_true(jc)
+    s = _last_three_true(sc)
+
+    okjc2, okjc3 = len(j) >= 2, len(j) >= 3
+    oksc2, oksc3 = len(s) >= 2, len(s) >= 3
+
+    # Top side (JC segments)
+    td = ts = tgn = tgs = False
+    if okjc2:
+        j1, j2 = j[-1], j[-2]
+        ch1 = _seg_ext(rows, j1, t, "close", True)
+        dh1 = _seg_ext(rows, j1, t, "dif", True)
+        ch2 = _seg_ext(rows, j2, j1 - 1, "close", True)
+        dh2 = _seg_ext(rows, j2, j1 - 1, "dif", True)
+        td = (
+            ch1 > ch2
+            and dh1 < dh2
+            and rows[t]["macd"] > 0
+            and rows[t - 1]["macd"] > 0
+            and rows[t]["dif"] >= rows[t - 1]["dif"]
+        )
+    if okjc3:
+        j1, j2, j3 = j[-1], j[-2], j[-3]
+        ch1 = _seg_ext(rows, j1, t, "close", True)
+        dh1 = _seg_ext(rows, j1, t, "dif", True)
+        ch2 = _seg_ext(rows, j2, j1 - 1, "close", True)
+        ch3 = _seg_ext(rows, j3, j2 - 1, "close", True)
+        dh3 = _seg_ext(rows, j3, j2 - 1, "dif", True)
+        ts = (
+            ch1 > ch3
+            and ch3 > ch2
+            and dh1 < dh3
+            and rows[t]["macd"] > 0
+            and rows[t - 1]["macd"] > 0
+            and rows[t]["dif"] >= rows[t - 1]["dif"]
+        )
+    if t >= 1:
+        tgn = rows[t]["dif"] < rows[t - 1]["dif"] and td
+        tgs = rows[t]["dif"] < rows[t - 1]["dif"] and ts
+
+    # Bottom side (SC segments)
+    bd = bs = bgn = bgs = False
+    if oksc2:
+        s1, s2 = s[-1], s[-2]
+        cl1 = _seg_ext(rows, s1, t, "close", False)
+        dl1 = _seg_ext(rows, s1, t, "dif", False)
+        cl2 = _seg_ext(rows, s2, s1 - 1, "close", False)
+        dl2 = _seg_ext(rows, s2, s1 - 1, "dif", False)
+        bd = (
+            cl1 < cl2
+            and dl1 > dl2
+            and rows[t]["macd"] < 0
+            and rows[t - 1]["macd"] < 0
+            and rows[t]["dif"] <= rows[t - 1]["dif"]
+        )
+    if oksc3:
+        s1, s2, s3 = s[-1], s[-2], s[-3]
+        cl1 = _seg_ext(rows, s1, t, "close", False)
+        dl1 = _seg_ext(rows, s1, t, "dif", False)
+        cl2 = _seg_ext(rows, s2, s1 - 1, "close", False)
+        cl3 = _seg_ext(rows, s3, s2 - 1, "close", False)
+        dl3 = _seg_ext(rows, s3, s2 - 1, "dif", False)
+        bs = (
+            cl1 < cl3
+            and cl3 < cl2
+            and dl1 > dl3
+            and rows[t]["macd"] < 0
+            and rows[t - 1]["macd"] < 0
+            and rows[t]["dif"] <= rows[t - 1]["dif"]
+        )
+    if t >= 1:
+        bgn = rows[t]["dif"] > rows[t - 1]["dif"] and bd
+        bgs = rows[t]["dif"] > rows[t - 1]["dif"] and bs
+
+    return {
+        "bull_pass": bd or bs,
+        "bear_pass": td or ts,
+        "bull_div": bgn or bgs,
+        "bear_div": tgn or tgs,
+        "bull_pass_kind": "邻钝" if bd else ("隔钝" if bs else ""),
+        "bear_pass_kind": "邻钝" if td else ("隔钝" if ts else ""),
+    }
 
 
 def calc_structure(rows: List[dict]) -> SignalState:
-    cur_bull, bull_start = _latest_divergence(rows, bullish=True)
-    cur_bear, bear_start = _latest_divergence(rows, bullish=False)
-    cur_bull_pass, cur_bull_kind = _latest_passivation(rows, bullish=True)
-    cur_bear_pass, cur_bear_kind = _latest_passivation(rows, bullish=False)
-    if len(rows) < 40:
-        return SignalState(
-            cur_bull,
-            cur_bear,
-            False,
-            False,
-            cur_bull_pass,
-            cur_bear_pass,
-            False,
-            False,
-            cur_bull_kind,
-            cur_bear_kind,
-            _remain_bars_from(bull_start, len(rows)),
-            _remain_bars_from(bear_start, len(rows)),
-        )
-    prev = rows[:-1]
-    prev_bull, _ = _latest_divergence(prev, bullish=True)
-    prev_bear, _ = _latest_divergence(prev, bullish=False)
+    cur = _tdx_state(rows)
+    prev = _tdx_state(rows[:-1]) if len(rows) > 30 else {
+        "bull_pass": False,
+        "bear_pass": False,
+        "bull_div": False,
+        "bear_div": False,
+    }
     return SignalState(
-        cur_bull,
-        cur_bear,
-        prev_bull,
-        prev_bear,
-        cur_bull_pass,
-        cur_bear_pass,
-        _latest_passivation(prev, bullish=True)[0],
-        _latest_passivation(prev, bullish=False)[0],
-        cur_bull_kind,
-        cur_bear_kind,
-        _remain_bars_from(bull_start, len(rows)),
-        _remain_bars_from(bear_start, len(rows)),
+        bool(cur["bull_div"]),
+        bool(cur["bear_div"]),
+        bool(prev["bull_div"]),
+        bool(prev["bear_div"]),
+        bool(cur["bull_pass"]),
+        bool(cur["bear_pass"]),
+        bool(prev["bull_pass"]),
+        bool(prev["bear_pass"]),
+        str(cur.get("bull_pass_kind", "")),
+        str(cur.get("bear_pass_kind", "")),
+        STRUCTURE_IMPACT_BARS if cur["bull_div"] else 0,
+        STRUCTURE_IMPACT_BARS if cur["bear_div"] else 0,
     )
 
 
