@@ -109,14 +109,15 @@ def _latest_divergence(rows: List[dict], bullish: bool) -> bool:
     if not seg1 or not seg2:
         return False
 
+    # User-defined rule: all structure comparisons use close price only.
     if bullish:
-        p1 = min(x["low"] for x in seg1)
-        p2 = min(x["low"] for x in seg2)
+        p1 = min(x["close"] for x in seg1)
+        p2 = min(x["close"] for x in seg2)
         d1 = min(x["dif"] for x in seg1)
         d2 = min(x["dif"] for x in seg2)
         return (p2 < p1) and (d2 > d1) and (rows[-1]["macd"] < 0)
-    p1 = max(x["high"] for x in seg1)
-    p2 = max(x["high"] for x in seg2)
+    p1 = max(x["close"] for x in seg1)
+    p2 = max(x["close"] for x in seg2)
     d1 = max(x["dif"] for x in seg1)
     d2 = max(x["dif"] for x in seg2)
     return (p2 > p1) and (d2 < d1) and (rows[-1]["macd"] > 0)
