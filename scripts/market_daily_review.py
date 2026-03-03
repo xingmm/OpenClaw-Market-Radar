@@ -246,7 +246,21 @@ def trendline_state_text(prev_close: float, prev_trend: float, cur_close: float,
     return "在趋势线之上" if cur_close >= cur_trend else "在趋势线之下"
 
 
-def index_detail_line(name: str, rows_daily: List[dict], rows_120m: List[dict]) -> str:
+def _structure_tag(s: SignalState) -> str:
+    if s.bear_div:
+        return "顶"
+    if s.bull_div:
+        return "底"
+    return "无"
+
+
+def index_detail_line(
+    name: str,
+    rows_daily: List[dict],
+    rows_120m: List[dict],
+    rows_90m: List[dict],
+    rows_60m: List[dict],
+) -> str:
     ind_d = add_indicators(rows_daily)
     last = ind_d[-1]
     prev = ind_d[-2] if len(ind_d) >= 2 else ind_d[-1]
@@ -255,13 +269,23 @@ def index_detail_line(name: str, rows_daily: List[dict], rows_120m: List[dict]) 
     life_state = "在生死线之上" if last["close"] >= last["ema144"] else "在生死线之下"
     gap = abs(last["ema30"] - last["ema144"]) / last["ema144"] * 100
 
-    ind_120 = add_indicators(rows_120m)
-    st_120 = calc_structure(ind_120)
-    macd_note = "120m顶结构" if st_120.bear_div else ("120m底结构" if st_120.bull_div else "120m无结构")
+    st_d = calc_structure(ind_d)
+    st_120 = calc_structure(add_indicators(rows_120m))
+    st_90 = calc_structure(add_indicators(rows_90m))
+    st_60 = calc_structure(add_indicators(rows_60m))
+    macd_note = (
+        f"MACD(日/120/90/60)={_structure_tag(st_d)}/{_structure_tag(st_120)}/"
+        f"{_structure_tag(st_90)}/{_structure_tag(st_60)}"
+    )
 
     td_d = calc_td9(rows_daily)
     td_120 = calc_td9(rows_120m)
-    td_note = f"TD9(日/120)={td_d['up']}/{td_d['down']} | {td_120['up']}/{td_120['down']}"
+    td_90 = calc_td9(rows_90m)
+    td_60 = calc_td9(rows_60m)
+    td_note = (
+        f"TD9(日/120/90/60)={td_d['up']}/{td_d['down']}|{td_120['up']}/{td_120['down']}|"
+        f"{td_90['up']}/{td_90['down']}|{td_60['up']}/{td_60['down']}"
+    )
 
     return (
         f"- {name}: 收盘{last['close']:.2f} 日涨跌{chg:.2f}% | "
@@ -377,7 +401,9 @@ def build_report(out_json: Path, out_md: Path) -> None:
     for name in ["深证成指", "创业板指", "上证50", "沪深300", "中证500"]:
         rows_d = fetch_kline(SYMBOLS[name], 240, 260)
         rows_120 = fetch_kline(SYMBOLS[name], 120, 260)
-        sync_lines.append(index_detail_line(name, rows_d, rows_120))
+        rows_90 = fetch_kline(SYMBOLS[name], 90, 260)
+        rows_60 = fetch_kline(SYMBOLS[name], 60, 260)
+        sync_lines.append(index_detail_line(name, rows_d, rows_120, rows_90, rows_60))
 
     trend_gap = abs(last["ema30"] - last["ema144"]) / last["ema144"] * 100
     trend_state = trendline_state_text(prev_daily["close"], prev_daily["ema30"], last["close"], last["ema30"])
