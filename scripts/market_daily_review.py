@@ -219,10 +219,10 @@ def calc_td9(rows: List[dict]) -> Dict[str, int]:
     down = 0
     for i in range(4, len(closes)):
         if closes[i] > closes[i - 4]:
-            up += 1
+            up = min(up + 1, 9)
             down = 0
         elif closes[i] < closes[i - 4]:
-            down += 1
+            down = min(down + 1, 9)
             up = 0
         else:
             up = 0
