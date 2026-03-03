@@ -221,12 +221,20 @@ def _barlastcount(flags: List[bool]) -> int:
     return c
 
 
-def calc_td9(rows: List[dict]) -> Dict[str, int]:
-    """TD9 setup (TongDaXin style):
+def _td_phase(raw_count: int) -> int:
+    """Map continuous setup count to TD9 phase: 1..9 (10->1, 11->2, ...)."""
+    if raw_count <= 0:
+        return 0
+    return ((raw_count - 1) % 9) + 1
 
-    UP_RAW  = BARSLASTCOUNT(C > REF(C,4))
-    DOWN_RAW= BARSLASTCOUNT(C < REF(C,4))
-    TD high/low count is clipped to 9 for display.
+
+def calc_td9(rows: List[dict]) -> Dict[str, int]:
+    """TD9 setup aligned to TongDaXin formula style provided by user.
+
+    B  := C < REF(C,4)
+    S  := C > REF(C,4)
+    JT := BARSLASTCOUNT(B/S)
+    Cycle labels repeat every 9 bars (10->1, 11->2 ...).
     """
     closes = [r["close"] for r in rows]
     if len(closes) < 5:
@@ -235,18 +243,19 @@ def calc_td9(rows: List[dict]) -> Dict[str, int]:
     up_flags: List[bool] = [False, False, False, False]
     down_flags: List[bool] = [False, False, False, False]
     for i in range(4, len(closes)):
-        up_flags.append(closes[i] > closes[i - 4])
         down_flags.append(closes[i] < closes[i - 4])
+        up_flags.append(closes[i] > closes[i - 4])
 
     up_raw = _barlastcount(up_flags)
     down_raw = _barlastcount(down_flags)
-    up = min(up_raw, 9) if up_raw > 0 else 0
-    down = min(down_raw, 9) if down_raw > 0 else 0
 
-    # Mirror TD display expectation: only one side is active.
-    if up > 0:
+    up = _td_phase(up_raw)
+    down = _td_phase(down_raw)
+
+    # One-sided display: only active direction is shown.
+    if up_raw > 0:
         down = 0
-    elif down > 0:
+    elif down_raw > 0:
         up = 0
 
     return {"up": up, "down": down, "up_raw": up_raw, "down_raw": down_raw}
