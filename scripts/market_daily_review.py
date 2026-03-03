@@ -213,21 +213,43 @@ def calc_structure(rows: List[dict]) -> SignalState:
     )
 
 
+def _barlastcount(flags: List[bool]) -> int:
+    """TongDaXin BARSLASTCOUNT equivalent on current bar."""
+    c = 0
+    for f in flags:
+        c = c + 1 if f else 0
+    return c
+
+
 def calc_td9(rows: List[dict]) -> Dict[str, int]:
+    """TD9 setup (TongDaXin style):
+
+    UP_RAW  = BARSLASTCOUNT(C > REF(C,4))
+    DOWN_RAW= BARSLASTCOUNT(C < REF(C,4))
+    TD high/low count is clipped to 9 for display.
+    """
     closes = [r["close"] for r in rows]
-    up = 0
-    down = 0
+    if len(closes) < 5:
+        return {"up": 0, "down": 0, "up_raw": 0, "down_raw": 0}
+
+    up_flags: List[bool] = [False, False, False, False]
+    down_flags: List[bool] = [False, False, False, False]
     for i in range(4, len(closes)):
-        if closes[i] > closes[i - 4]:
-            up = min(up + 1, 9)
-            down = 0
-        elif closes[i] < closes[i - 4]:
-            down = min(down + 1, 9)
-            up = 0
-        else:
-            up = 0
-            down = 0
-    return {"up": up, "down": down}
+        up_flags.append(closes[i] > closes[i - 4])
+        down_flags.append(closes[i] < closes[i - 4])
+
+    up_raw = _barlastcount(up_flags)
+    down_raw = _barlastcount(down_flags)
+    up = min(up_raw, 9) if up_raw > 0 else 0
+    down = min(down_raw, 9) if down_raw > 0 else 0
+
+    # Mirror TD display expectation: only one side is active.
+    if up > 0:
+        down = 0
+    elif down > 0:
+        up = 0
+
+    return {"up": up, "down": down, "up_raw": up_raw, "down_raw": down_raw}
 
 
 def td_text(td: Dict[str, int]) -> str:
