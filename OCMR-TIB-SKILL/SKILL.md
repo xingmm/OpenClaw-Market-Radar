@@ -11,12 +11,14 @@ description: OpenClaw-Market-Radar 技能索引与导航。用于在个股研究
 - `references/skills/宏观洞察/SKILL.md`：宏观定价层分析与传导链判断。
 - `references/skills/快讯雷达/SKILL.md`：快讯分桶、打分与优先级。
 - `references/skills/市场洞察编排/SKILL.md`：市场洞察合并编排（宏观 + 快讯）。
+- `references/skills/盘面复盘/SKILL.md`：盘面每日复盘（趋势+结构+仓位动作）。
 
 ## 路由规则
 
 - `跑一下宏观洞察` -> `references/skills/宏观洞察/SKILL.md`
 - `跑一下快讯雷达` -> `references/skills/快讯雷达/SKILL.md`
 - `跑一下市场洞察` / `跑一下投资雷达` -> `references/skills/市场洞察编排/SKILL.md`
+- `跑一下盘面复盘` / `做今日复盘` / `跑一下盘面解读` -> `references/skills/盘面复盘/SKILL.md`
 - `调研一下 [股票]` / `分析财报 [公司]` / `解释一下 [财经概念]` / `解读这条消息` -> `references/skills/个股研究/SKILL.md`
 
 ## 说明

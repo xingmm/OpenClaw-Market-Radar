@@ -33,12 +33,13 @@ Turn OpenClaw-Market-Radar into a repeatable pipeline: input -> analysis -> acti
 - 消息解读
 - 概念解读
 - 持仓体检
-- 盘面解读（pending user spec）
+- 盘面复盘（每日复盘版：趋势为王，结构修边）
 
 ## Skill Routing (mandatory)
 - `跑一下宏观洞察` -> `OCMR-TIB-SKILL/references/skills/宏观洞察/SKILL.md`
 - `跑一下快讯雷达` -> `OCMR-TIB-SKILL/references/skills/快讯雷达/SKILL.md`
 - `跑一下市场洞察` -> `OCMR-TIB-SKILL/references/skills/市场洞察编排/SKILL.md`（内部组合 P19 + P20）
+- `跑一下盘面复盘` / `做今日复盘` / `跑一下盘面解读` -> `OCMR-TIB-SKILL/references/skills/盘面复盘/SKILL.md`（P22）
 - `OCMR-TIB-SKILL/references/p13-market-scanner.md` 作为底层扫描能力保留，不作为默认合并输出路由
 
 ## Daily Pipeline (fixed order)
@@ -177,6 +178,7 @@ Hard rules:
 - 分析财报 [公司]
 - 解释一下 [财经概念]
 - 解读这条消息
+- 跑一下盘面复盘 / 做今日复盘 / 跑一下盘面解读
 
 ---
 

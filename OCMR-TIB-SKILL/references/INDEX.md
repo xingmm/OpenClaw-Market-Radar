@@ -13,6 +13,7 @@
 | 宏观洞察 | `references/skills/宏观洞察/SKILL.md` | `跑一下宏观洞察` | `p19` |
 | 快讯雷达 | `references/skills/快讯雷达/SKILL.md` | `跑一下快讯雷达` `看看有什么信号` | `p20` |
 | 市场洞察编排 | `references/skills/市场洞察编排/SKILL.md` | `跑一下市场洞察` `跑一下投资雷达` | `p19 + p20 + p21` |
+| 盘面复盘 | `references/skills/盘面复盘/SKILL.md` | `跑一下盘面复盘` `做今日复盘` `跑一下盘面解读` | `p22` |
 
 ## 二、提示词方法库（Prompt）
 
@@ -39,6 +40,7 @@
 | P19 | `p19-macro-insight.md` | 宏观洞察模板 | 是（宏观洞察/市场洞察编排） | `跑一下宏观洞察` |
 | P20 | `p20-fastnews-radar.md` | 快讯雷达模板 | 是（快讯雷达/市场洞察编排） | `跑一下快讯雷达` |
 | P21 | `p21-market-insight-orchestrator.md` | 市场洞察编排模板 | 是（市场洞察编排） | `跑一下市场洞察` / `跑一下投资雷达` |
+| P22 | `p22-market-daily-review.md` | 盘面每日复盘模板（趋势+结构+仓位） | 是（盘面复盘） | `跑一下盘面复盘` / `做今日复盘` |
 
 ## 三、使用规则（简版）
 
