@@ -379,23 +379,7 @@ def structure_line(tf: str, s: SignalState) -> str:
         tags.append("底结构")
     if s.bear_div:
         tags.append("顶结构")
-    if s.bull_pass and not s.bull_pass_prev:
-        tags.append("底钝化出现")
-    if s.bear_pass and not s.bear_pass_prev:
-        tags.append("顶钝化出现")
-    if s.bull_div and not s.bull_div_prev:
-        tags.append("底结构形成")
-    if s.bear_div and not s.bear_div_prev:
-        tags.append("顶结构形成")
-    if (not s.bull_pass) and s.bull_pass_prev:
-        tags.append("底钝化消失")
-    if (not s.bear_pass) and s.bear_pass_prev:
-        tags.append("顶钝化消失")
-    if (not s.bull_div) and s.bull_div_prev:
-        tags.append("底结构消失")
-    if (not s.bear_div) and s.bear_div_prev:
-        tags.append("顶结构消失")
-    if not tags:
+    if (not tags):
         tags.append("无结构信号")
     remain_bits: List[str] = []
     # User rule: once structure is recognized, display full 24-bar impact window.
@@ -407,6 +391,27 @@ def structure_line(tf: str, s: SignalState) -> str:
         remain_bits.append(f"顶结构剩余{bear_remain}根")
     remain_txt = "；".join(remain_bits) if remain_bits else "无结构剩余周期"
     return f"- {tf}: {'/'.join(tags)}（{remain_txt}）"
+
+
+def structure_event_lines(tf: str, s: SignalState) -> List[str]:
+    events: List[str] = []
+    if s.bull_pass and not s.bull_pass_prev:
+        events.append(f"- {tf}: 底钝化出现")
+    if s.bear_pass and not s.bear_pass_prev:
+        events.append(f"- {tf}: 顶钝化出现")
+    if (not s.bull_pass) and s.bull_pass_prev:
+        events.append(f"- {tf}: 底钝化消失")
+    if (not s.bear_pass) and s.bear_pass_prev:
+        events.append(f"- {tf}: 顶钝化消失")
+    if s.bull_div and not s.bull_div_prev:
+        events.append(f"- {tf}: 底结构形成（影响24根同级别K线）")
+    if s.bear_div and not s.bear_div_prev:
+        events.append(f"- {tf}: 顶结构形成（影响24根同级别K线）")
+    if (not s.bull_div) and s.bull_div_prev:
+        events.append(f"- {tf}: 底结构消失")
+    if (not s.bear_div) and s.bear_div_prev:
+        events.append(f"- {tf}: 顶结构消失")
+    return events
 
 
 def build_report(out_json: Path, out_md: Path) -> None:
@@ -422,6 +427,9 @@ def build_report(out_json: Path, out_md: Path) -> None:
 
     risk_tfs = [k for k, v in struct_states.items() if v.bear_div]
     reduce_layers, reasons = trend_action(last, bool(risk_tfs))
+    structure_events: List[str] = []
+    for tf, st in struct_states.items():
+        structure_events.extend(structure_event_lines(tf, st))
 
     td_map = {"月线": 240, "周线": 240, "日线": 240, "120m": 120, "90m": 90, "60m": 60}
     td_lines: List[str] = []
@@ -467,16 +475,19 @@ def build_report(out_json: Path, out_md: Path) -> None:
         *[structure_line(k, v) for k, v in struct_states.items()],
         f"- 共振检查: {'存在多周期风险共振' if len(risk_tfs) >= 2 else '无明显风险共振'}",
         "",
-        "## 3) 仓位动作建议（总仓位口径）",
+        "## 3) MACD事件提示（四周期）",
+        *(structure_events if structure_events else ["- 本次无钝化/钝化消失/结构形成/结构消失事件"]),
+        "",
+        "## 4) 仓位动作建议（总仓位口径）",
         f"- 建议动作: {'减' + str(reduce_layers) + '层' if reduce_layers > 0 else '维持仓位'}",
         f"- 触发依据: {'；'.join(reasons) if reasons else '未触发破趋势与高威胁结构条件'}",
         "",
-        "## 4) TD9提示（月/周/日/120/90/60）",
+        "## 5) TD9提示（月/周/日/120/90/60）",
         f"- TD9总述: 高位7+出现{td_up7}个周期，低位7+出现{td_down7}个周期。",
         *td_lines,
         "- 说明: TD9仅作提示，不作为直接加减仓信号。",
         "",
-        "## 5) 次日观察点",
+        "## 6) 次日观察点",
         "- 上证是否重新站回EMA30；若未站回且风险结构延续，优先风控。",
         "- 关注风险结构是否消失（尤其60m/90m）；消失后再评估风险释放。",
         "- 跟踪指数同步性：若上证与其余五指数背离扩大，警惕风格切换。",
