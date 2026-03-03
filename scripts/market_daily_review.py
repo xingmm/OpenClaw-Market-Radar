@@ -162,18 +162,26 @@ def pct_change(rows: List[dict]) -> float:
     return 0.0 if prev == 0 else (cur - prev) / prev * 100
 
 
+def trendline_state_text(prev_close: float, prev_trend: float, cur_close: float, cur_trend: float) -> str:
+    if prev_close >= prev_trend and cur_close < cur_trend:
+        return "跌破趋势线"
+    if prev_close <= prev_trend and cur_close > cur_trend:
+        return "突破趋势线"
+    return "在趋势线之上" if cur_close >= cur_trend else "在趋势线之下"
+
+
 def index_detail_line(name: str, rows_daily: List[dict]) -> str:
     ind = add_indicators(rows_daily)
     last = ind[-1]
+    prev = ind[-2] if len(ind) >= 2 else ind[-1]
     chg = pct_change(rows_daily)
-    trend = []
-    trend.append("上EMA30" if last["close"] >= last["ema30"] else "下EMA30")
-    trend.append("上EMA144" if last["close"] >= last["ema144"] else "下EMA144")
+    trend_state = trendline_state_text(prev["close"], prev["ema30"], last["close"], last["ema30"])
+    life_state = "在生死线之上" if last["close"] >= last["ema144"] else "在生死线之下"
     gap = abs(last["ema30"] - last["ema144"]) / last["ema144"] * 100
     return (
         f"- {name}: 收盘{last['close']:.2f} 日涨跌{chg:.2f}% | "
-        f"EMA30={last['ema30']:.2f} EMA144={last['ema144']:.2f} "
-        f"({','.join(trend)}; 短长距{gap:.2f}%)"
+        f"趋势线={last['ema30']:.2f} 生死线={last['ema144']:.2f} "
+        f"({trend_state},{life_state}; 短长距{gap:.2f}%)"
     )
 
 
@@ -235,6 +243,7 @@ def structure_line(tf: str, s: SignalState) -> str:
 def build_report(out_json: Path, out_md: Path) -> None:
     daily = add_indicators(fetch_kline(SYMBOLS["上证指数"], 240, 260))
     last = daily[-1]
+    prev_daily = daily[-2] if len(daily) >= 2 else daily[-1]
 
     tf_map = {"60m": 60, "90m": 90, "120m": 120, "日线": 240}
     struct_states: Dict[str, SignalState] = {}
@@ -247,13 +256,18 @@ def build_report(out_json: Path, out_md: Path) -> None:
 
     td_map = {"月线": 240, "周线": 240, "日线": 240, "120m": 120, "90m": 90, "60m": 60}
     td_lines: List[str] = []
+    td_up9 = 0
+    td_down9 = 0
     for name, scale in td_map.items():
         td = calc_td9(fetch_kline(SYMBOLS["上证指数"], scale, 80))
         txt = f"{name} TD上计数={td['up']} TD下计数={td['down']}"
         if td["up"] >= 9:
+            td_up9 += 1
             txt += "（高位不追高提示）"
-        if td["down"] >= 9 and not risk_tfs:
-            txt += "（低9可作观察参考）"
+        if td["down"] >= 9:
+            td_down9 += 1
+            if not risk_tfs:
+                txt += "（低9可作观察参考）"
         td_lines.append(f"- {txt}")
 
     sync_lines = []
@@ -262,18 +276,22 @@ def build_report(out_json: Path, out_md: Path) -> None:
         sync_lines.append(index_detail_line(name, rows))
 
     trend_gap = abs(last["ema30"] - last["ema144"]) / last["ema144"] * 100
+    trend_state = trendline_state_text(prev_daily["close"], prev_daily["ema30"], last["close"], last["ema30"])
+    life_state = "在生死线之上" if last["close"] >= last["ema144"] else "在生死线之下"
+    macd_summary = "存在风险结构" if risk_tfs else "未见风险结构"
     lines = [
         "# 盘面每日复盘（趋势为王，结构修边）",
         f"> 生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         "",
         "## 1) 趋势状态（日线）",
         f"- 上证收盘(最新K): {last['close']:.2f}",
-        f"- 短期趋势EMA30: {last['ema30']:.2f}",
-        f"- 长期趋势EMA144: {last['ema144']:.2f}",
+        f"- 趋势线(EMA30): {last['ema30']:.2f}",
+        f"- 生死线(EMA144): {last['ema144']:.2f}",
         f"- 短长趋势距离: {trend_gap:.2f}%（<=2%视为接近）",
-        f"- 趋势结论: {'跌破短期趋势' if last['close'] < last['ema30'] else '站上短期趋势'} / {'跌破长期趋势' if last['close'] < last['ema144'] else '站上长期趋势'}",
+        f"- 趋势结论: {trend_state}，{life_state}",
         "",
         "## 2) 结构状态（60m/90m/120m/日线）",
+        f"- MACD总述: {macd_summary}",
         *[structure_line(k, v) for k, v in struct_states.items()],
         f"- 共振检查: {'存在多周期风险共振' if len(risk_tfs) >= 2 else '无明显风险共振'}",
         "",
@@ -282,6 +300,7 @@ def build_report(out_json: Path, out_md: Path) -> None:
         f"- 触发依据: {'；'.join(reasons) if reasons else '未触发破趋势与高威胁结构条件'}",
         "",
         "## 4) TD9提示（月/周/日/120/90/60）",
+        f"- TD9总述: 高位9出现{td_up9}个周期，低位9出现{td_down9}个周期。",
         *td_lines,
         "- 说明: TD9仅作提示，不作为直接加减仓信号。",
         "",
