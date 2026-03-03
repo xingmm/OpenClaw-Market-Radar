@@ -33,6 +33,14 @@ class SignalState:
     bear_div: bool
     bull_div_prev: bool
     bear_div_prev: bool
+    bull_pass: bool
+    bear_pass: bool
+    bull_pass_prev: bool
+    bear_pass_prev: bool
+    bull_pass_kind: str
+    bear_pass_kind: str
+    bull_div_remain: int
+    bear_div_remain: int
 
 
 def fetch_kline(symbol: str, scale: int, datalen: int) -> List[dict]:
@@ -98,16 +106,16 @@ def _cross_indices(rows: List[dict], dead_cross: bool) -> List[int]:
     return idx
 
 
-def _latest_divergence(rows: List[dict], bullish: bool) -> bool:
+def _latest_divergence(rows: List[dict], bullish: bool) -> Tuple[bool, int | None]:
     crosses = _cross_indices(rows, dead_cross=bullish)
     if len(crosses) < 2:
-        return False
+        return False, None
     a0, a1 = crosses[-2], crosses[-1]
     b0, b1 = crosses[-1], len(rows) - 1
     seg1 = rows[a0:a1 + 1]
     seg2 = rows[b0:b1 + 1]
     if not seg1 or not seg2:
-        return False
+        return False, None
 
     # User-defined rule: all structure comparisons use close price only.
     if bullish:
@@ -115,25 +123,93 @@ def _latest_divergence(rows: List[dict], bullish: bool) -> bool:
         p2 = min(x["close"] for x in seg2)
         d1 = min(x["dif"] for x in seg1)
         d2 = min(x["dif"] for x in seg2)
-        return (p2 < p1) and (d2 > d1) and (rows[-1]["macd"] < 0)
+        ok = (p2 < p1) and (d2 > d1) and (rows[-1]["macd"] < 0)
+        return ok, (b0 if ok else None)
     p1 = max(x["close"] for x in seg1)
     p2 = max(x["close"] for x in seg2)
     d1 = max(x["dif"] for x in seg1)
     d2 = max(x["dif"] for x in seg2)
-    return (p2 > p1) and (d2 < d1) and (rows[-1]["macd"] > 0)
+    ok = (p2 > p1) and (d2 < d1) and (rows[-1]["macd"] > 0)
+    return ok, (b0 if ok else None)
+
+
+def _latest_passivation(rows: List[dict], bullish: bool, lookback: int = 8) -> Tuple[bool, str]:
+    if len(rows) < 3:
+        return False, ""
+    tail = rows[-min(len(rows), lookback):]
+    last = tail[-1]
+    prev = tail[-2]
+    is_pass = False
+    if bullish:
+        # Bottom passivation: price still weak but downside momentum starts to flatten.
+        is_pass = (
+            last["macd"] < 0
+            and prev["macd"] < 0
+            and last["macd"] > prev["macd"]
+            and last["dif"] > prev["dif"]
+            and last["close"] <= min(x["close"] for x in tail)
+        )
+    else:
+        # Top passivation: price still strong but upside momentum starts to flatten.
+        is_pass = (
+            last["macd"] > 0
+            and prev["macd"] > 0
+            and last["macd"] < prev["macd"]
+            and last["dif"] < prev["dif"]
+            and last["close"] >= max(x["close"] for x in tail)
+        )
+    if not is_pass:
+        return False, ""
+    crosses = _cross_indices(rows, dead_cross=bullish)
+    if not crosses:
+        return True, "隔钝"
+    gap = len(rows) - 1 - crosses[-1]
+    return True, ("邻钝" if gap <= 1 else "隔钝")
+
+
+def _remain_bars_from(start_idx: int | None, total_len: int) -> int:
+    if start_idx is None:
+        return 0
+    elapsed = max(0, total_len - 1 - start_idx)
+    return max(0, STRUCTURE_IMPACT_BARS - elapsed)
 
 
 def calc_structure(rows: List[dict]) -> SignalState:
-    cur_bull = _latest_divergence(rows, bullish=True)
-    cur_bear = _latest_divergence(rows, bullish=False)
+    cur_bull, bull_start = _latest_divergence(rows, bullish=True)
+    cur_bear, bear_start = _latest_divergence(rows, bullish=False)
+    cur_bull_pass, cur_bull_kind = _latest_passivation(rows, bullish=True)
+    cur_bear_pass, cur_bear_kind = _latest_passivation(rows, bullish=False)
     if len(rows) < 40:
-        return SignalState(cur_bull, cur_bear, False, False)
+        return SignalState(
+            cur_bull,
+            cur_bear,
+            False,
+            False,
+            cur_bull_pass,
+            cur_bear_pass,
+            False,
+            False,
+            cur_bull_kind,
+            cur_bear_kind,
+            _remain_bars_from(bull_start, len(rows)),
+            _remain_bars_from(bear_start, len(rows)),
+        )
     prev = rows[:-1]
+    prev_bull, _ = _latest_divergence(prev, bullish=True)
+    prev_bear, _ = _latest_divergence(prev, bullish=False)
     return SignalState(
         cur_bull,
         cur_bear,
-        _latest_divergence(prev, bullish=True),
-        _latest_divergence(prev, bullish=False),
+        prev_bull,
+        prev_bear,
+        cur_bull_pass,
+        cur_bear_pass,
+        _latest_passivation(prev, bullish=True)[0],
+        _latest_passivation(prev, bullish=False)[0],
+        cur_bull_kind,
+        cur_bear_kind,
+        _remain_bars_from(bull_start, len(rows)),
+        _remain_bars_from(bear_start, len(rows)),
     )
 
 
@@ -223,21 +299,39 @@ def trend_action(last: dict, has_risk_structure: bool) -> Tuple[int, List[str]]:
 
 def structure_line(tf: str, s: SignalState) -> str:
     tags: List[str] = []
+    if s.bull_pass:
+        tags.append(f"底钝化({s.bull_pass_kind})")
+    if s.bear_pass:
+        tags.append(f"顶钝化({s.bear_pass_kind})")
     if s.bull_div:
         tags.append("底结构")
     if s.bear_div:
         tags.append("顶结构")
+    if s.bull_pass and not s.bull_pass_prev:
+        tags.append("底钝化出现")
+    if s.bear_pass and not s.bear_pass_prev:
+        tags.append("顶钝化出现")
     if s.bull_div and not s.bull_div_prev:
         tags.append("底结构形成")
     if s.bear_div and not s.bear_div_prev:
         tags.append("顶结构形成")
+    if (not s.bull_pass) and s.bull_pass_prev:
+        tags.append("底钝化消失")
+    if (not s.bear_pass) and s.bear_pass_prev:
+        tags.append("顶钝化消失")
     if (not s.bull_div) and s.bull_div_prev:
         tags.append("底结构消失")
     if (not s.bear_div) and s.bear_div_prev:
         tags.append("顶结构消失")
     if not tags:
-        tags.append("无结构")
-    return f"- {tf}: {'/'.join(tags)}（影响窗口约{STRUCTURE_IMPACT_BARS}根同级别K线）"
+        tags.append("无结构信号")
+    remain_bits: List[str] = []
+    if s.bull_div:
+        remain_bits.append(f"底结构剩余{s.bull_div_remain}根")
+    if s.bear_div:
+        remain_bits.append(f"顶结构剩余{s.bear_div_remain}根")
+    remain_txt = "；".join(remain_bits) if remain_bits else "无结构剩余周期"
+    return f"- {tf}: {'/'.join(tags)}（{remain_txt}）"
 
 
 def build_report(out_json: Path, out_md: Path) -> None:
