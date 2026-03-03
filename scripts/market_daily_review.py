@@ -367,10 +367,13 @@ def structure_line(tf: str, s: SignalState) -> str:
     if not tags:
         tags.append("无结构信号")
     remain_bits: List[str] = []
+    # User rule: once structure is recognized, display full 24-bar impact window.
+    bull_remain = STRUCTURE_IMPACT_BARS if s.bull_div else s.bull_div_remain
+    bear_remain = STRUCTURE_IMPACT_BARS if s.bear_div else s.bear_div_remain
     if s.bull_div:
-        remain_bits.append(f"底结构剩余{s.bull_div_remain}根")
+        remain_bits.append(f"底结构剩余{bull_remain}根")
     if s.bear_div:
-        remain_bits.append(f"顶结构剩余{s.bear_div_remain}根")
+        remain_bits.append(f"顶结构剩余{bear_remain}根")
     remain_txt = "；".join(remain_bits) if remain_bits else "无结构剩余周期"
     return f"- {tf}: {'/'.join(tags)}（{remain_txt}）"
 
