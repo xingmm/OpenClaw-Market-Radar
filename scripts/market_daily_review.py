@@ -230,6 +230,14 @@ def calc_td9(rows: List[dict]) -> Dict[str, int]:
     return {"up": up, "down": down}
 
 
+def td_text(td: Dict[str, int]) -> str:
+    if td["up"] > 0:
+        return f"高{td['up']}"
+    if td["down"] > 0:
+        return f"低{td['down']}"
+    return "无"
+
+
 def pct_change(rows: List[dict]) -> float:
     if len(rows) < 2:
         return 0.0
@@ -283,8 +291,8 @@ def index_detail_line(
     td_90 = calc_td9(rows_90m)
     td_60 = calc_td9(rows_60m)
     td_note = (
-        f"TD9(日/120/90/60)={td_d['up']}/{td_d['down']}|{td_120['up']}/{td_120['down']}|"
-        f"{td_90['up']}/{td_90['down']}|{td_60['up']}/{td_60['down']}"
+        f"TD9(日/120/90/60)={td_text(td_d)}|{td_text(td_120)}|"
+        f"{td_text(td_90)}|{td_text(td_60)}"
     )
 
     return (
@@ -387,7 +395,7 @@ def build_report(out_json: Path, out_md: Path) -> None:
     td_down7 = 0
     for name, scale in td_map.items():
         td = calc_td9(fetch_kline(SYMBOLS["上证指数"], scale, 80))
-        txt = f"{name} TD上计数={td['up']} TD下计数={td['down']}"
+        txt = f"{name} TD={td_text(td)}"
         if td["up"] >= 7:
             td_up7 += 1
             txt += "（高位7+不追高提示）"
