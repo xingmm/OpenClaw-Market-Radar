@@ -300,19 +300,48 @@ def calc_structure(rows: List[dict]) -> SignalState:
         "bull_div": False,
         "bear_div": False,
     }
+
+    # Safety merge: keep compatibility with prior close-price divergence signals.
+    # This avoids dropping an already-identified daily structure during formula migration.
+    legacy_bull_div, _ = _latest_divergence(rows, bullish=True)
+    legacy_bear_div, _ = _latest_divergence(rows, bullish=False)
+    legacy_bull_pass, legacy_bull_kind = _latest_passivation(rows, bullish=True)
+    legacy_bear_pass, legacy_bear_kind = _latest_passivation(rows, bullish=False)
+
+    if len(rows) > 31:
+        legacy_prev_bull_div, _ = _latest_divergence(rows[:-1], bullish=True)
+        legacy_prev_bear_div, _ = _latest_divergence(rows[:-1], bullish=False)
+        legacy_prev_bull_pass, _ = _latest_passivation(rows[:-1], bullish=True)
+        legacy_prev_bear_pass, _ = _latest_passivation(rows[:-1], bullish=False)
+    else:
+        legacy_prev_bull_div = legacy_prev_bear_div = False
+        legacy_prev_bull_pass = legacy_prev_bear_pass = False
+
+    cur_bull_div = bool(cur["bull_div"]) or legacy_bull_div
+    cur_bear_div = bool(cur["bear_div"]) or legacy_bear_div
+    prev_bull_div = bool(prev["bull_div"]) or legacy_prev_bull_div
+    prev_bear_div = bool(prev["bear_div"]) or legacy_prev_bear_div
+    cur_bull_pass = bool(cur["bull_pass"]) or legacy_bull_pass
+    cur_bear_pass = bool(cur["bear_pass"]) or legacy_bear_pass
+    prev_bull_pass = bool(prev["bull_pass"]) or legacy_prev_bull_pass
+    prev_bear_pass = bool(prev["bear_pass"]) or legacy_prev_bear_pass
+
+    bull_kind = str(cur.get("bull_pass_kind", "")) or legacy_bull_kind
+    bear_kind = str(cur.get("bear_pass_kind", "")) or legacy_bear_kind
+
     return SignalState(
-        bool(cur["bull_div"]),
-        bool(cur["bear_div"]),
-        bool(prev["bull_div"]),
-        bool(prev["bear_div"]),
-        bool(cur["bull_pass"]),
-        bool(cur["bear_pass"]),
-        bool(prev["bull_pass"]),
-        bool(prev["bear_pass"]),
-        str(cur.get("bull_pass_kind", "")),
-        str(cur.get("bear_pass_kind", "")),
-        STRUCTURE_IMPACT_BARS if cur["bull_div"] else 0,
-        STRUCTURE_IMPACT_BARS if cur["bear_div"] else 0,
+        cur_bull_div,
+        cur_bear_div,
+        prev_bull_div,
+        prev_bear_div,
+        cur_bull_pass,
+        cur_bear_pass,
+        prev_bull_pass,
+        prev_bear_pass,
+        bull_kind,
+        bear_kind,
+        STRUCTURE_IMPACT_BARS if cur_bull_div else 0,
+        STRUCTURE_IMPACT_BARS if cur_bear_div else 0,
     )
 
 
