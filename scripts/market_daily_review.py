@@ -568,18 +568,18 @@ def build_report(out_json: Path, out_md: Path) -> None:
 
     td_map = {"月线": 240, "周线": 240, "日线": 240, "120m": 120, "90m": 90, "60m": 60}
     td_lines: List[str] = []
-    td_up7 = 0
-    td_down7 = 0
+    td_up9 = 0
+    td_down9 = 0
     for name, scale in td_map.items():
         td = calc_td9(fetch_kline(SYMBOLS["上证指数"], scale, 80))
         txt = f"{name} TD={td_text(td)}"
-        if td["up"] >= 7:
-            td_up7 += 1
-            txt += "（高位7+不追高提示）"
-        if td["down"] >= 7:
-            td_down7 += 1
+        if td["up"] >= 9:
+            td_up9 += 1
+            txt += "（高位9不追高提示）"
+        if td["down"] >= 9:
+            td_down9 += 1
             if not risk_tfs:
-                txt += "（低位7+可作观察参考）"
+                txt += "（低位9可作观察参考）"
         td_lines.append(f"- {txt}")
 
     sync_lines = []
@@ -609,20 +609,19 @@ def build_report(out_json: Path, out_md: Path) -> None:
         f"- MACD总述: {macd_summary}",
         *[structure_line(k, v) for k, v in struct_states.items()],
         f"- 共振检查: {'存在多周期风险共振' if len(risk_tfs) >= 2 else '无明显风险共振'}",
-        "",
-        "## 3) MACD事件提示（四周期）",
+        "- MACD事件提示:",
         *(structure_events if structure_events else ["- 本次无钝化/钝化消失/结构形成/结构消失事件"]),
         "",
-        "## 4) 仓位动作建议（总仓位口径）",
+        "## 3) 仓位动作建议（总仓位口径）",
         f"- 建议动作: {'减' + str(reduce_layers) + '层' if reduce_layers > 0 else '维持仓位'}",
         f"- 触发依据: {'；'.join(reasons) if reasons else '未触发破趋势与高威胁结构条件'}",
         "",
-        "## 5) TD9提示（月/周/日/120/90/60）",
-        f"- TD9总述: 高位7+出现{td_up7}个周期，低位7+出现{td_down7}个周期。",
+        "## 4) TD9提示（月/周/日/120/90/60）",
+        f"- TD9总述: 高位9出现{td_up9}个周期，低位9出现{td_down9}个周期。",
         *td_lines,
         "- 说明: TD9仅作提示，不作为直接加减仓信号。",
         "",
-        "## 6) 次日观察点",
+        "## 5) 次日观察点",
         "- 上证是否重新站回EMA30；若未站回且风险结构延续，优先风控。",
         "- 关注风险结构是否消失（尤其60m/90m）；消失后再评估风险释放。",
         "- 跟踪指数同步性：若上证与其余五指数背离扩大，警惕风格切换。",

@@ -68,6 +68,8 @@ check_file "OCMR-TIB-SKILL/references/skills/个股研究/SKILL.md"
 check_file "OCMR-TIB-SKILL/references/skills/宏观洞察/SKILL.md"
 check_file "OCMR-TIB-SKILL/references/skills/快讯雷达/SKILL.md"
 check_file "OCMR-TIB-SKILL/references/skills/市场洞察编排/SKILL.md"
+check_file "OCMR-TIB-SKILL/references/skills/盘面复盘/SKILL.md"
+check_file "scripts/market_daily_review.py"
 
 # Python deps check
 if "$PY_CMD" - << 'PY' >/dev/null 2>&1

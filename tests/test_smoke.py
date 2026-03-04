@@ -18,6 +18,7 @@ class TestProjectSmoke(unittest.TestCase):
             ROOT / "scripts" / "fetch_macro_liquidity.py",
             ROOT / "scripts" / "fetch_fastnews_portfolio.py",
             ROOT / "scripts" / "financial_report.py",
+            ROOT / "scripts" / "market_daily_review.py",
         ]
         for path in required:
             self.assertTrue(path.exists(), f"missing: {path}")
@@ -28,6 +29,7 @@ class TestProjectSmoke(unittest.TestCase):
         self.assertIn("references/skills/宏观洞察/SKILL.md", text)
         self.assertIn("references/skills/快讯雷达/SKILL.md", text)
         self.assertIn("references/skills/市场洞察编排/SKILL.md", text)
+        self.assertIn("references/skills/盘面复盘/SKILL.md", text)
 
     def test_split_skills_have_valid_frontmatter(self):
         skill_paths = [
@@ -35,6 +37,7 @@ class TestProjectSmoke(unittest.TestCase):
             ROOT / "OCMR-TIB-SKILL" / "references" / "skills" / "宏观洞察" / "SKILL.md",
             ROOT / "OCMR-TIB-SKILL" / "references" / "skills" / "快讯雷达" / "SKILL.md",
             ROOT / "OCMR-TIB-SKILL" / "references" / "skills" / "市场洞察编排" / "SKILL.md",
+            ROOT / "OCMR-TIB-SKILL" / "references" / "skills" / "盘面复盘" / "SKILL.md",
         ]
         for path in skill_paths:
             text = path.read_text(encoding="utf-8")

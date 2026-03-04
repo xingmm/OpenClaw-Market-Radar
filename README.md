@@ -35,7 +35,8 @@ OpenClaw-Market-Radar/
 │   ├── fetch_data_api.py
 │   ├── fetch_macro_liquidity.py
 │   ├── fetch_fastnews_portfolio.py
-│   └── financial_report.py
+│   ├── financial_report.py
+│   └── market_daily_review.py
 ├── OCMR-TIB-SKILL/
 │   ├── SKILL.md
 │   └── references/
@@ -94,6 +95,14 @@ python3 scripts/fetch_fastnews_portfolio.py \
   --out-md "OpenClaw/我的持仓与关注点和投资偏好/ai建议/快讯雷达_$(date +%Y-%m-%d).md"
 ```
 
+可选：跑一轮盘面复盘（趋势+结构+仓位动作）
+
+```bash
+python3 scripts/market_daily_review.py \
+  --out-json "OpenClaw/市场洞察报告/Internal_Report/$(date +%Y-%m)/盘面复盘_$(date +%Y-%m-%d).json" \
+  --out-md "OpenClaw/市场洞察报告/Internal_Report/$(date +%Y-%m)/盘面复盘_$(date +%Y-%m-%d).md"
+```
+
 ## 在 OpenClaw 对话里怎么用
 
 在 OpenClaw 对话中可直接触发：
@@ -101,6 +110,7 @@ python3 scripts/fetch_fastnews_portfolio.py \
 - `跑一下市场洞察`
 - `跑一下宏观洞察`
 - `跑一下快讯雷达`
+- `跑一下盘面复盘` / `做今日复盘` / `跑一下盘面解读`
 - `做个持仓体检`
 
 规则与输出标准见：
@@ -113,13 +123,14 @@ python3 scripts/fetch_fastnews_portfolio.py \
 - `跑一下宏观洞察` -> `OCMR-TIB-SKILL/references/skills/宏观洞察/SKILL.md`
 - `跑一下快讯雷达` -> `OCMR-TIB-SKILL/references/skills/快讯雷达/SKILL.md`
 - `跑一下市场洞察` -> `OCMR-TIB-SKILL/references/skills/市场洞察编排/SKILL.md`（编排 P19 + P20）
+- `跑一下盘面复盘` / `做今日复盘` -> `OCMR-TIB-SKILL/references/skills/盘面复盘/SKILL.md`（P22）
 - `调研一下 [股票]` / `分析财报 [公司]` -> `OCMR-TIB-SKILL/references/skills/个股研究/SKILL.md`
 
 ## 运行逻辑（简版）
 
 1. 输入层：脚本抓数据（RSS/API/宏观）
 2. 处理层：按暗号文档和 Skill 规则分析
-3. 输出层：生成市场洞察、快讯雷达、财报报告等
+3. 输出层：生成市场洞察、快讯雷达、盘面复盘、财报报告等
 4. 归档层：结果写入 `OpenClaw/市场洞察报告/` 与 `ai建议/`
 
 ## 开源仓库维护建议
