@@ -531,10 +531,13 @@ def structure_event_lines(tf: str, s: SignalState) -> List[str]:
         events.append(f"- {tf}: 底钝化出现")
     if s.bear_pass and not s.bear_pass_prev:
         events.append(f"- {tf}: 顶钝化出现")
-    if (not s.bull_pass) and s.bull_pass_prev:
+
+    # If same-side structure is active, suppress passivation-disappear noise.
+    if (not s.bull_pass) and s.bull_pass_prev and (not s.bull_div):
         events.append(f"- {tf}: 底钝化消失")
-    if (not s.bear_pass) and s.bear_pass_prev:
+    if (not s.bear_pass) and s.bear_pass_prev and (not s.bear_div):
         events.append(f"- {tf}: 顶钝化消失")
+
     if s.bull_div and not s.bull_div_prev:
         events.append(f"- {tf}: 底结构形成（影响24根同级别K线）")
     if s.bear_div and not s.bear_div_prev:
